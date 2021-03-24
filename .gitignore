@@ -9,6 +9,7 @@
 /vendor/
 ###< symfony/framework-bundle ###
 
+/bin/
 /.idea
 /docker/mysql/data
 /docker/mysql-test/data
