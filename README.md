@@ -1,9 +1,15 @@
 # Xcelirate Tech Test 
 
-## Run project
+### First time run project
 ```make dev```
 
-## Run tests
+### Run project
+```make up```
+
+### Stop project
+```make down```
+
+### Run tests
 ```make test```
 
 ## Guides
