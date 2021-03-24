@@ -1,0 +1,41 @@
+version: '3'
+
+services:
+  xa-mysql-test:
+    image: mysql:8.0.23
+    environment:
+      - DATABASE_HOST=${DATABASE_HOST}
+      - MYSQL_DATABASE=${DATABASE_NAME}
+      - MYSQL_USER=${DATABASE_USER}
+      - MYSQL_PASSWORD=${DATABASE_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DATABASE_PASSWORD}
+    networks:
+      - xa-net
+    command: --default-authentication-plugin=mysql_native_password
+    restart: on-failure
+    volumes:
+      - ./docker/mysql-test/data:/var/lib/mysql:delegated
+
+  xa-redis-test:
+    image: redis:latest
+    depends_on:
+      xa-rabbitmq-test:
+        condition: service_healthy
+    networks:
+      - xa-net
+
+  xa-rabbitmq-test:
+    restart: always
+    image: rabbitmq:3-management
+    networks:
+      - xa-net
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+networks:
+  xa-net:
+    driver: bridge
+    name: 'xa-net'

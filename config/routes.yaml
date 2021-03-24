@@ -1,0 +1,4 @@
+shout_quote:
+  path: /shout/{author}
+  controller: App\Controller\Quotes\ShoutController::shout
+  methods: [GET]

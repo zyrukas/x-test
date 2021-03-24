@@ -1,0 +1,73 @@
+version: '3'
+
+services:
+  xa-mysql:
+    image: mysql:8.0.23
+    environment:
+      - DATABASE_HOST=${DATABASE_HOST}
+      - MYSQL_DATABASE=${DATABASE_NAME}
+      - MYSQL_USER=${DATABASE_USER}
+      - MYSQL_PASSWORD=${DATABASE_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=${DATABASE_PASSWORD}
+    ports:
+      - "3306:3306"
+    networks:
+      - xa-net
+    command: --default-authentication-plugin=mysql_native_password
+    restart: on-failure
+    volumes:
+      - ./docker/mysql/data:/var/lib/mysql:delegated
+
+  xa-redis:
+    image: redis:latest
+    networks:
+      - xa-net
+    ports:
+      - 6379:6379
+
+  xa-php-fpm:
+    build:
+      context: .
+      dockerfile: ./docker/php-fpm/Dockerfile
+    ports:
+      - 9000:9000
+    depends_on:
+      xa-rabbitmq:
+        condition: service_healthy
+    networks:
+      - xa-net
+    working_dir: /var/www/html
+    volumes:
+      - .:/var/www/html:cached
+
+  xa-nginx:
+    build:
+      context: .
+      dockerfile: ./docker/nginx/Dockerfile
+    depends_on:
+      - xa-php-fpm
+    ports:
+      - 80:80
+    networks:
+      - xa-net
+    volumes:
+      - .:/var/www/html:cached
+
+  xa-rabbitmq:
+    restart: always
+    image: rabbitmq:3-management
+    ports:
+    - 5672:5672
+    - 15672:15672
+    networks:
+      - xa-net
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 10s
+      timeout: 10s
+      retries: 10
+
+networks:
+  xa-net:
+    driver: bridge
+    name: 'xa-net'
