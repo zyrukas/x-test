@@ -1,5 +1,3 @@
-# Xcelirate Tech Test 
-
 ### First time run project
 ```make dev```
 
